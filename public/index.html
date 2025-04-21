@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TeraBox Video Player</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center px-4 py-8">
+  <h1 class="text-3xl font-bold mb-6">🎬 TeraBox Online Video Player</h1>
+  <div class="w-full max-w-2xl">
+    <input id="linkInput" type="text" placeholder="Paste TeraBox share link here" class="w-full p-3 text-black rounded mb-4">
+    <button onclick="loadVideo()" class="bg-orange-500 hover:bg-orange-600 w-full p-3 rounded font-semibold">Play Video</button>
+    <div id="videoContainer" class="mt-6 hidden">
+      <video id="player" playsinline controls class="w-full rounded-xl">
+        <source src="" type="video/mp4">
+      </video>
+      <a id="downloadBtn" href="#" download class="block mt-4 text-center bg-blue-500 hover:bg-blue-600 py-2 px-4 rounded">Download Video</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+  <script>
+    const player = new Plyr('#player');
+
+    async function loadVideo() {
+      const link = document.getElementById('linkInput').value;
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ link })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('videoContainer').classList.remove('hidden');
+        const video = document.querySelector('#player');
+        video.src = data.streamUrl;
+        player.source = {
+          type: 'video',
+          sources: [{ src: data.streamUrl, type: 'video/mp4' }]
+        };
+        document.getElementById('downloadBtn').href = data.streamUrl;
+      } else {
+        alert("Failed to load video. Check the link.");
+      }
+    }
+  </script>
+</body>
+</html>
